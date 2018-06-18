@@ -31,6 +31,6 @@ public class Receipt implements IBankResponse {
     @SerializedName("total_lost")
     public int total_lost;
 
-    @SerializedName("receipt_detail")
+    @SerializedName(value = "receipt_detail", alternate = "receipt")
     public ReceiptDetail[] rd;
 }

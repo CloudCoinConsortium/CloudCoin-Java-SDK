@@ -79,7 +79,7 @@ public class CloudBankUtils {
 
                     @Override
                     public Integer onCompleted() {
-                        String response = builder.build().toString();
+                        String response = builder.build().getResponseBody();
                         BankTotal bankTotals = gson.fromJson(response, BankTotal.class);
                         if ("coins_shown".equals(bankTotals.status)) {
                             onesInBank = bankTotals.ones;
@@ -122,6 +122,7 @@ public class CloudBankUtils {
     */
     public CompletableFuture<Object> sendStackToCloudBank() {
         CompletableFuture<Object> clientCall = client.preparePost("https://" + keys.publickey + "/deposit_one_stack.aspx")
+                .addFormParam("pk", keys.privatekey)
                 .addFormParam("stack", rawStackForDeposit)
                 .execute(new AsyncHandler<>() {
                     private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
@@ -148,7 +149,7 @@ public class CloudBankUtils {
 
                     @Override
                     public Integer onCompleted() {
-                        String response = builder.build().toString();
+                        String response = builder.build().getResponseBody();
                         DepositResponse cbf = gson.fromJson(response, DepositResponse.class);
                         System.out.println(cbf.message);
                         receiptNumber = cbf.receipt;
@@ -174,6 +175,7 @@ public class CloudBankUtils {
     */
     public CompletableFuture<Object> sendStackToCloudBank(String toPublicURL) {
         CompletableFuture<Object> clientCall = client.preparePost("https://" + toPublicURL + "/deposit_one_stack.aspx")
+                .addFormParam("pk", keys.privatekey)
                 .addFormParam("stack", rawStackForDeposit)
                 .execute(new AsyncHandler<>() {
                     private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
@@ -251,7 +253,7 @@ public class CloudBankUtils {
 
                     @Override
                     public Integer onCompleted() {
-                        rawReceipt = builder.build().toString();
+                        rawReceipt = builder.build().getResponseBody();
                         return status;
                     }
 
@@ -302,7 +304,7 @@ public class CloudBankUtils {
 
                     @Override
                     public Integer onCompleted() {
-                        rawStackFromWithdrawal = builder.build().toString();
+                        rawStackFromWithdrawal = builder.build().getResponseBody();
                         FailResponse failResponse = gson.fromJson(rawStackFromWithdrawal, FailResponse.class);
                         System.out.println(failResponse.status);
                         System.out.println(failResponse.message);
@@ -353,8 +355,8 @@ public class CloudBankUtils {
         // ThreadStopper is used to stop the thread if the call to /get_receipt fails, and prevents the call to /withdraw_account
         final AsyncThreadStopper threadStopper = new AsyncThreadStopper();
 
-        CompletableFuture<Object> clientCall = client.preparePost("https://" + keys.publickey + "/get_receipt.aspx")
-                .addFormParam("rn", receiptNumber)
+        CompletableFuture<Object> clientCall = client.prepareGet("https://" + keys.publickey + "/get_receipt.aspx?rn="
+                + receiptNumber)
                 .addFormParam("pk", keys.privatekey)
                 .execute(new AsyncHandler<>() {
                     private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
@@ -381,7 +383,7 @@ public class CloudBankUtils {
 
                     @Override
                     public Integer onCompleted() {
-                        String rawReceipt = builder.build().toString();
+                        String rawReceipt = builder.build().getResponseBody();
                         Receipt deserialReceipt = gson.fromJson(rawReceipt, Receipt.class);
                         for (int i = 0; i < deserialReceipt.rd.length; i++)
                             if ("authentic".equals(deserialReceipt.rd[i].status))
@@ -403,8 +405,8 @@ public class CloudBankUtils {
                 return;
 
             ListenableFuture<Integer> clientCall2 = client.preparePost("https://" + keys.publickey + "/withdraw_account.aspx")
-                    .addFormParam("amount", Integer.toString(totalCoinsWithdrawn))
                     .addFormParam("pk", keys.privatekey)
+                    .addFormParam("amount", Integer.toString(totalCoinsWithdrawn))
                     .execute(new AsyncHandler<>() {
                         private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
                         private Integer status;
@@ -430,7 +432,7 @@ public class CloudBankUtils {
 
                         @Override
                         public Integer onCompleted() {
-                            rawStackFromWithdrawal = builder.build().toString();
+                            rawStackFromWithdrawal = builder.build().getResponseBody();
                             FailResponse failResponse = gson.fromJson(rawStackFromWithdrawal, FailResponse.class);
                             System.out.println(failResponse.status);
                             System.out.println(failResponse.message);
