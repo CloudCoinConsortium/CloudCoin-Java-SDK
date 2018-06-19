@@ -1,5 +1,12 @@
 package CloudCoinJavaSDK;
 
+/*
+  Copyright (c) 2018 Ben Ward, 15/06/18
+
+  This work is licensed under the terms of the MIT license.
+  For a copy, see <https://opensource.org/licenses/MIT>.
+ */
+
 import com.google.gson.Gson;
 import org.asynchttpclient.*;
 
@@ -13,6 +20,22 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 
+/**
+ * {@code CloudBankUtils} handles all connectivity with a CloudServer, and initiates all CloudCoin exchanges.
+ * {@code CloudBankUtils} allows you to exchange CloudCoins, view details for accounts or exchanges, and load
+ *  or save CloudCoins from files.
+ *
+ * <h3>Usage</h3>
+ * <p>
+ * A {@code CloudBankUtils} instance requires a {@link BankKeys} object containing encryption keys for an
+ * account.
+ *
+ * <p>
+ * <br>
+ * <code>BankKeys bankKeys = new BankKeys(publicKey, privateKey, email);
+ * <br>
+ * CloudBankUtils cloudBankUtils = new CloudBankUtils(bankKeys);</code>
+ */
 public class CloudBankUtils implements ICloudBankUtils {
 
 

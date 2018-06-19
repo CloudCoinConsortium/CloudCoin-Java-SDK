@@ -1,7 +1,17 @@
 package CloudCoinJavaSDK;
 
+/*
+  Copyright (c) 2018 Ben Ward, 15/06/18
+
+  This work is licensed under the terms of the MIT license.
+  For a copy, see <https://opensource.org/licenses/MIT>.
+ */
+
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * {@code Receipt} contains information about a previous stack exchange.
+ */
 public class Receipt extends BaseBankResponse {
 
 
