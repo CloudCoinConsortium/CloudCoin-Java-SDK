@@ -28,6 +28,8 @@ interface ICloudBankUtils  {
     CompletableFuture getReceipt();
     CompletableFuture getReceiptFromCloudBank();
     void transferCloudCoins(String toPublicKey, int coinsToSend);
+    CompletableFuture writeCheck(int amountToSend, String payTo, String signedBy, String memo);
+    CompletableFuture cashCheck(String checkId);
 }
 
 class BaseKeys {

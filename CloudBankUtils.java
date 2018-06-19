@@ -23,7 +23,7 @@ import static org.asynchttpclient.Dsl.asyncHttpClient;
 /**
  * {@code CloudBankUtils} handles all connectivity with a CloudServer, and initiates all CloudCoin exchanges.
  * {@code CloudBankUtils} allows you to exchange CloudCoins, view details for accounts or exchanges, and load
- *  or save CloudCoins from files.
+ * or save CloudCoins from files.
  *
  * <h3>Usage</h3>
  * <p>
@@ -229,7 +229,7 @@ public class CloudBankUtils implements ICloudBankUtils {
 
                     @Override
                     public Integer onCompleted() {
-                        String response = builder.build().toString();
+                        String response = builder.build().getResponseBody();
                         DepositResponse cbf = gson.fromJson(response, DepositResponse.class);
                         System.out.println(cbf.message);
                         receiptNumber = cbf.receipt;
@@ -438,47 +438,7 @@ public class CloudBankUtils implements ICloudBankUtils {
             if (threadStopper.stopThread)
                 return;
 
-            ListenableFuture<Integer> clientCall2 = client.preparePost("https://" + keys.publickey + "/withdraw_account.aspx")
-                    .addFormParam("pk", keys.privatekey)
-                    .addFormParam("amount", Integer.toString(totalCoinsWithdrawn))
-                    .execute(new AsyncHandler<>() {
-                        private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
-                        private Integer status;
-
-                        @Override
-                        public State onStatusReceived(HttpResponseStatus responseStatus) {
-                            builder.accumulate(responseStatus);
-                            status = responseStatus.getStatusCode();
-                            return State.CONTINUE;
-                        }
-
-                        @Override
-                        public State onHeadersReceived(HttpResponseHeaders headers) {
-                            builder.accumulate(headers);
-                            return State.CONTINUE;
-                        }
-
-                        @Override
-                        public State onBodyPartReceived(HttpResponseBodyPart bodyPart) {
-                            builder.accumulate(bodyPart);
-                            return State.CONTINUE;
-                        }
-
-                        @Override
-                        public Integer onCompleted() {
-                            rawStackFromWithdrawal = builder.build().getResponseBody();
-                            FailResponse failResponse = gson.fromJson(rawStackFromWithdrawal, FailResponse.class);
-                            System.out.println(failResponse.status);
-                            System.out.println(failResponse.message);
-                            return status;
-                        }
-
-                        @Override
-                        public void onThrowable(Throwable t) {
-                            System.out.println("Exception: " + t.getMessage());
-                            System.out.println("Check your connection, or your public key");
-                        }
-                    });
+            getStackFromCloudBank(totalCoinsWithdrawn);
         });
 
         return clientCall;
@@ -549,6 +509,125 @@ public class CloudBankUtils implements ICloudBankUtils {
             sendStackToCloudBank(toPublicKey);
         });
         //Upload amount
+    }
+
+    /**
+     * Creates a digital check containing CloudCoins. This effectively allows CloudCoins to be exchanged like checks,
+     * which can be created in advance and cashed in at a later date. The url of the check is saved in
+     * {@link DepositResponse} in {@code message}. A check can be cashed in with {@code cashCheck}.
+     *
+     * @param amountToSend The amount of CloudCoins to be transferred
+     * @param payTo        The name of the recipient
+     * @param signedBy     The name of the sender
+     * @param memo         A short note describing the payment
+     * @return CompletableFuture
+     */
+    public CompletableFuture<Object> writeCheck(int amountToSend, String payTo, String signedBy, String memo) {
+        CompletableFuture<Object> clientCall = client.preparePost("https://" + keys.publickey + "/write_check.aspx")
+                .addFormParam("pk", keys.privatekey)
+                .addFormParam("amount", Integer.toString(amountToSend))
+                .addFormParam("payto", payTo)
+                .addFormParam("signby", signedBy)
+                .addFormParam("Memo", memo)
+                .execute(new AsyncHandler<>() {
+                    private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
+                    private Integer status;
+
+                    @Override
+                    public State onStatusReceived(HttpResponseStatus responseStatus) {
+                        builder.accumulate(responseStatus);
+                        status = responseStatus.getStatusCode();
+                        return State.CONTINUE;
+                    }
+
+                    @Override
+                    public State onHeadersReceived(HttpResponseHeaders headers) {
+                        builder.accumulate(headers);
+                        return State.CONTINUE;
+                    }
+
+                    @Override
+                    public State onBodyPartReceived(HttpResponseBodyPart bodyPart) {
+                        builder.accumulate(bodyPart);
+                        return State.CONTINUE;
+                    }
+
+                    @Override
+                    public Integer onCompleted() {
+                        String response = builder.build().getResponseBody();
+                        DepositResponse cbf = gson.fromJson(response, DepositResponse.class);
+                        System.out.println(cbf.message);
+                        return status;
+                    }
+
+                    @Override
+                    public void onThrowable(Throwable t) {
+                        System.out.println("Exception: " + t.getMessage());
+                        System.out.println("Check your connection, or your public key");
+                    }
+                })
+                .toCompletableFuture();
+
+        return clientCall;
+    }
+
+    /**
+     * Cashes a CloudCoin check and returns a CloudCoin stack. A check can be generated with {@code writeCheck}.
+     *
+     * <p>
+     * To deposit the check, call {@code sendStackToCloudBank()} after receiving the check.
+     *
+     * @param checkId The ID of the check
+     * @return CompletableFuture
+     */
+    public CompletableFuture<Object> cashCheck(String checkId) {
+        CompletableFuture<Object> clientCall = client.preparePost(
+                "https://" + keys.publickey + "/checks.aspx?id=" + checkId)
+                .addFormParam("pk", keys.privatekey)
+                .execute(new AsyncHandler<>() {
+                    private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
+                    private Integer status;
+
+                    @Override
+                    public State onStatusReceived(HttpResponseStatus responseStatus) {
+                        builder.accumulate(responseStatus);
+                        status = responseStatus.getStatusCode();
+                        return State.CONTINUE;
+                    }
+
+                    @Override
+                    public State onHeadersReceived(HttpResponseHeaders headers) {
+                        builder.accumulate(headers);
+                        return State.CONTINUE;
+                    }
+
+                    @Override
+                    public State onBodyPartReceived(HttpResponseBodyPart bodyPart) {
+                        builder.accumulate(bodyPart);
+                        return State.CONTINUE;
+                    }
+
+                    @Override
+                    public Integer onCompleted() {
+                        String response = builder.build().getResponseBody();
+                        FailResponse failResponse = gson.fromJson(response, FailResponse.class);
+                        if (null == failResponse.message) {
+                            rawStackForDeposit = response;
+                        } else {
+                            System.out.println(failResponse.message);
+                        }
+                        return status;
+                    }
+
+                    @Override
+                    public void onThrowable(Throwable t) {
+                        System.out.println("Exception: " + t.getMessage());
+                        System.out.println("Check your connection, or your public key");
+                    }
+                })
+                .toCompletableFuture();
+
+        return clientCall;
     }
 
     private class AsyncThreadStopper {
