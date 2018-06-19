@@ -1,20 +1,7 @@
 package CloudCoinJavaSDK;
 
-import com.google.gson.annotations.SerializedName;
 
-public class BankKeys implements IKeys {
-
-
-    // Fields
-
-    @SerializedName("publickey")
-    public String publickey;
-
-    @SerializedName("privatekey")
-    public String privatekey;
-
-    @SerializedName("email")
-    public String email;
+public class BankKeys extends BaseKeys {
 
 
     // Constructors

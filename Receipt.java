@@ -2,7 +2,7 @@ package CloudCoinJavaSDK;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Receipt implements IBankResponse {
+public class Receipt extends BaseBankResponse {
 
 
     // Fields
@@ -10,14 +10,8 @@ public class Receipt implements IBankResponse {
     @SerializedName("receipt_id")
     public String receipt_id;
 
-    @SerializedName("time")
-    public String time;
-
     @SerializedName("timezone")
     public String timezone;
-
-    @SerializedName("bank_server")
-    public String bank_server;
 
     @SerializedName("total_authentic")
     public int total_authentic;

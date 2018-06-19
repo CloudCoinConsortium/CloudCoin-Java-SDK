@@ -1,17 +1,12 @@
 package CloudCoinJavaSDK;
 
+
 import com.google.gson.annotations.SerializedName;
 
-public class FailResponse implements IBankResponse {
+public class FailResponse extends BaseBankResponse {
 
 
     // Fields
-
-    @SerializedName("bank_server")
-    public String bank_server;
-
-    @SerializedName("time")
-    public String time;
 
     @SerializedName("status")
     public String status;

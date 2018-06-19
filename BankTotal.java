@@ -2,7 +2,7 @@ package CloudCoinJavaSDK;
 
 import com.google.gson.annotations.SerializedName;
 
-public class BankTotal implements IBankResponse {
+public class BankTotal extends BaseBankResponse {
 
 
     // Fields
@@ -22,15 +22,8 @@ public class BankTotal implements IBankResponse {
     @SerializedName("twohundredfifties")
     public int twohundredfifties;
 
-    @SerializedName("bank_server")
-    public String bank_server;
-
     @SerializedName("status")
     public String status;
-
-    @SerializedName("time")
-    public String time;
-
 
     // Constructors
 
