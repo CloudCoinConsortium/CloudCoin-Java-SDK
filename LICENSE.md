@@ -1,20 +1,5 @@
-# CloudCoin-Java-SDK
+MIT License
 
-A Java Framework for connecting an application to a CloudCoinConsortium CloudService.
-
-###Usage
-
-Create a BankKeys object using keys from a CloudService server, then use it to create a CloudBankUtils instance. Call CloudBankUtils' methods to communicate with the CloudService.
-
-###Dependencies
-
-The Java SDK uses Gson for converting server calls to Java objects, and AsyncHttpClient for asynchronous HTTP requests.
-
-### License
-
-CloudCoin-Java-SDK is released under the [MIT License](LICENSE).
-
-```
 Copyright (c) 2018 CloudCoin Consortium
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

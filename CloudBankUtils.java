@@ -21,20 +21,37 @@ import java.util.concurrent.CompletableFuture;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 
 /**
- * {@code CloudBankUtils} handles all connectivity with a CloudServer, and initiates all CloudCoin exchanges.
- * {@code CloudBankUtils} allows you to exchange CloudCoins, view details for accounts or exchanges, and load
- * or save CloudCoins from files.
- *
+ * CloudBankUtils handles all connectivity with a CloudServer, and initiates all CloudCoin exchanges. CloudBankUtils
+ * allows you to exchange CloudCoins, view details for accounts or exchanges, load or save CloudCoins from files,
+ * and write or cash CloudCoin checks.
+ * <p>
+ * <br>
+ * CloudBankUtils contains methods that run server operations. These methods return a {@link CompletableFuture}
+ * object that can be used to track server progress or chain methods together.
+ * <br>
  * <h3>Usage</h3>
  * <p>
- * A {@code CloudBankUtils} instance requires a {@link BankKeys} object containing encryption keys for an
- * account.
- *
+ * A CloudBankUtils instance requires a {@link BankKeys} object containing encryption keys for an account.
  * <p>
  * <br>
  * <code>BankKeys bankKeys = new BankKeys(publicKey, privateKey, email);
  * <br>
  * CloudBankUtils cloudBankUtils = new CloudBankUtils(bankKeys);</code>
+ * <p>
+ * <br>
+ * To perform an action after a server call finishes, use the method {@link CompletableFuture#thenRun thenRun} on
+ * its {@code CompletableFuture}.
+ * <p>
+ * <br>
+ * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+ * <br>
+ * <code>// This code runs after the server call is complete</code>
+ * <br>
+ * <code>}
+ * <br>
+ * CloudBankUtils cloudBankUtils = new CloudBankUtils(bankKeys);</code>
+ * <p>
+ * <br>
  */
 public class CloudBankUtils implements ICloudBankUtils {
 
@@ -59,8 +76,47 @@ public class CloudBankUtils implements ICloudBankUtils {
 
     // Constructor
 
-    public CloudBankUtils(BankKeys startKeys) {
-        keys = startKeys;
+    /**
+     * Constructs a CloudBankUtils object with complete access to an account. The account keys from
+     * {@link BankKeys} are used to connect to an account, and cannot be changed. To connect to another
+     * account, create a new {@code CloudBankUtils} object.
+     * <br>
+     * CloudBankUtils handles all connectivity with a CloudServer, and initiates all CloudCoin exchanges. CloudBankUtils
+     * allows you to exchange CloudCoins, view details for accounts or exchanges, load or save CloudCoins from files,
+     * and write or cash CloudCoin checks.
+     * <p>
+     * <br>
+     * CloudBankUtils contains methods that run server operations. These methods return a {@link CompletableFuture}
+     * object that can be used to track server progress or chain methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * A CloudBankUtils instance requires a {@link BankKeys} object containing encryption keys for an account.
+     * <p>
+     * <br>
+     * <code>BankKeys bankKeys = new BankKeys(publicKey, privateKey, email);
+     * <br>
+     * CloudBankUtils cloudBankUtils = new CloudBankUtils(bankKeys);</code>
+     * <p>
+     * <br>
+     * To perform an action after a server call finishes, use the method {@link CompletableFuture#thenRun thenRun} on
+     * its {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}
+     * <br>
+     * CloudBankUtils cloudBankUtils = new CloudBankUtils(bankKeys);</code>
+     * <p>
+     * <br>
+     *
+     * @param bankKeys the {@link BankKeys} object containing the encryption keys for the current account.
+     */
+    public CloudBankUtils(BankKeys bankKeys) {
+        keys = bankKeys;
         client = asyncHttpClient();
         gson = new Gson();
     }
@@ -69,10 +125,26 @@ public class CloudBankUtils implements ICloudBankUtils {
     // Methods
 
     /**
-     * Calls the CloudService's show_coins service for the server that this object holds the keys for.
+     * Calls the CloudService's show coins service for the server that this object holds the keys for.
      * The results are saved in this class's public properties if successful.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @return CompletableFuture
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> showCoins() {
         //the private key is sent as form url encoded content
@@ -131,9 +203,10 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Sets rawStackForDeposit to a CloudCoin stack read from a file.
+     * Sets rawStackForDeposit to a CloudCoin stack read from a file. If successful, this stack can be deposited
+     * to the account with {@link #sendStackToCloudBank}.
      *
-     * @param filepath The full filepath and filename of the CloudCoin stack that is being loaded
+     * @param filepath the full filepath and filename of the CloudCoin stack that is being loaded
      * @throws IOException if the CloudCoin stack file is not found
      */
     public void loadStackFromFile(String filepath) throws IOException {
@@ -141,10 +214,26 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Sends the CloudCoin in rawStackForDeposit to the CloudService server that this object holds the keys for.
-     * <br>{@code loadStackFromFile()} needs to be called first.
+     * Sends CloudCoins cached from {@code loadStackFromFile} to the CloudService server that this object holds the
+     * keys for. {@link #loadStackFromFile} must be called first to load CloudCoins into the cache.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @return CompletableFuture
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> sendStackToCloudBank() {
         CompletableFuture<Object> clientCall = client.preparePost("https://" + keys.publickey + "/deposit_one_stack.aspx")
@@ -194,11 +283,29 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Sends the CloudCoin in rawStackForDeposit to a CloudService server specified by {@code toPublicURL}.
-     * <br>{@code loadStackFromFile()} needs to be called first.
+     * Sends CloudCoins cached from {@code loadStackFromFile} to a CloudService server. The server is specified by
+     * the URL defined in {@code toPublicURL}. {@link #loadStackFromFile} must be called first to load CloudCoins
+     * into the cache.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @param toPublicURL url of the CloudService server the CloudCoins are being sent to. Do not include "https://"
-     * @return CompletableFuture
+     * @param toPublicURL the url of the CloudService server the CloudCoins are being sent to. Do not include
+     *                    "https://".
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> sendStackToCloudBank(String toPublicURL) {
         CompletableFuture<Object> clientCall = client.preparePost("https://" + toPublicURL + "/deposit_one_stack.aspx")
@@ -250,9 +357,25 @@ public class CloudBankUtils implements ICloudBankUtils {
     /**
      * Retrieve the receipt generated by the CloudService for the last sendStackToCloudBank call.
      * Requires sendStackToCloudBank to have been previously called.
-     * The retrieved receipt will be saved in rawReceipt.
+     * The retrieved receipt will be cached, and can be viewed with {@link #interpretReceipt}.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @return CompletableFuture
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> getReceipt() {
         CompletableFuture<Object> clientCall = client.prepareGet("https://" + keys.publickey + "/" + keys.privatekey + "/Receipts/" + receiptNumber + ".json")
@@ -300,9 +423,25 @@ public class CloudBankUtils implements ICloudBankUtils {
     /**
      * Retrieves CloudCoins from CloudService server that this object holds the keys for.
      * The resulting stack that is retrieved is saved in rawStackFromWithdrawal.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @param amountToWithdraw The amount of CloudCoins to withdraw
-     * @return CompletableFuture
+     * @param amountToWithdraw the amount of CloudCoins to withdraw
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> getStackFromCloudBank(int amountToWithdraw) {
         totalCoinsWithdrawn = amountToWithdraw;
@@ -353,9 +492,10 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Calculate a CloudCoin note's denomination using its serial number(sn).
+     * Calculates a CloudCoin's denomination using its serial number {@code sn}.
      *
-     * @param sn The serial number of a CloudCoin note
+     * @param sn the serial number of a CloudCoin note
+     * @returns denomination amount of the CloudCoin
      */
     private int getDenomination(int sn) {
         int nom;
@@ -381,9 +521,25 @@ public class CloudBankUtils implements ICloudBankUtils {
     /**
      * Retrieves CloudCoins from CloudService server that this object holds the keys for.
      * The amount withdrawn is the same as the amount last deposited with sendStackToCloudBank.
-     * The resulting stack that is retrieved is saved in rawStackFromWithdrawal.
+     * The resulting stack is then retrieved with the method {@link #getStackFromCloudBank}.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.showCoins().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @return CompletableFuture
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> getReceiptFromCloudBank() {
         // ThreadStopper is used to stop the thread if the call to /get_receipt fails, and prevents the call to /withdraw_account
@@ -445,10 +601,22 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Parses pertinent information from the receipt last gathered by getReceipt and returns it in the form of an
-     * Interpretation object.
+     * Generates an Interpretation object which contains a cached receipt, its total amount, and a short description
+     * of the receipt. There must first be a receipt cached from {@link #getReceipt}.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.getReceipt().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @return Interpretation
+     * @returns Interpretation or null if no cached receipt is found.
      */
     public Interpretation interpretReceipt() {
         Interpretation inter = new Interpretation();
@@ -472,11 +640,18 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Writes a CloudCoin stack file for the CloudCoin retrieved the last call of either getStackFromCloudBank or
-     * getReceiptFromCloudBank.
-     *
-     * @param path The full file path where the new file will be written
-     * @throws IOException if the CloudCoin stack file is not found
+     * Saves CloudCoins from a cache to a CloudCoin file.
+     * The CloudCoins must first be cached using {@link #getStackFromCloudBank} or {@link #getReceiptFromCloudBank()}.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * <code>cloudBankUtils.getStackFromCloudBank().thenRun() -> {</code>
+     * <br>
+     * <code>saveStackToFile(path)</code>
+     * <br>
+     * <code>}</code>
+     * @param path the full file path where the new file will be written
+     * @throws IOException if no cached CloudCoins are found
      */
     public void saveStackToFile(String path) throws IOException {
         Files.write(Paths.get(path + getStackName()), rawStackFromWithdrawal.getBytes());
@@ -485,6 +660,8 @@ public class CloudBankUtils implements ICloudBankUtils {
 
     /**
      * Generates a filename for the CloudCoin stack file to be written by saveStackToFile.
+     *
+     * @returns {@link String}
      */
     public String getStackName() {
         if (receiptNumber == null) {
@@ -496,17 +673,19 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Calls getStackFromCloudBank and sendStackToCloudBank in order to transfer CloudCoins from one CloudService to
-     * another.
+     * Transfers CloudCoins from this account to another account. This method first guarantees the local cache has
+     * enough CloudCoins with {@link #getStackFromCloudBank}, then transfers the cached CloudCoins with
+     * {@link #sendStackToCloudBank}. If the account does not have enough for the transaction, then neither the
+     * withdrawal or transaction will occur.
      *
-     * @param toPublicKey The public url of the CloudService that is receiving the CloudCoins
-     * @param coinsToSend The amount of CloudCoins to be transferred
+     * @param toPublicKey the public url of the CloudService that is receiving the CloudCoins
+     * @param coinsToSend the amount of CloudCoins to be transferred
      */
     public void transferCloudCoins(final String toPublicKey, int coinsToSend) {
         //Download amount
         getStackFromCloudBank(coinsToSend).thenRun(() -> {
             rawStackForDeposit = rawStackFromWithdrawal; // Make it so it will send the stack it received
-            sendStackToCloudBank(toPublicKey);
+            CloudBankUtils.this.sendStackToCloudBank(toPublicKey);
         });
         //Upload amount
     }
@@ -514,13 +693,29 @@ public class CloudBankUtils implements ICloudBankUtils {
     /**
      * Creates a digital check containing CloudCoins. This effectively allows CloudCoins to be exchanged like checks,
      * which can be created in advance and cashed in at a later date. The url of the check is saved in
-     * {@link DepositResponse} in {@code message}. A check can be cashed in with {@code cashCheck}.
+     * {@link DepositResponse#message}. A check can be cashed in with {@link #cashCheck}.
+     * <p>
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To perform an action after this server call finishes, use the method {@link CompletableFuture#thenRun thenRun}
+     * on its returned {@code CompletableFuture}.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.writeCheck().thenRun() -> {</code>
+     * <br>
+     * <code>// This code runs after the server call is complete</code>
+     * <br>
+     * <code>}</code>
      *
-     * @param amountToSend The amount of CloudCoins to be transferred
-     * @param payTo        The name of the recipient
-     * @param signedBy     The name of the sender
-     * @param memo         A short note describing the payment
-     * @return CompletableFuture
+     * @param amountToSend the amount of CloudCoins to be transferred
+     * @param payTo        the name of the recipient
+     * @param signedBy     the name of the sender
+     * @param memo         a short note describing the payment
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> writeCheck(int amountToSend, String payTo, String signedBy, String memo) {
         CompletableFuture<Object> clientCall = client.preparePost("https://" + keys.publickey + "/write_check.aspx")
@@ -572,13 +767,25 @@ public class CloudBankUtils implements ICloudBankUtils {
     }
 
     /**
-     * Cashes a CloudCoin check and returns a CloudCoin stack. A check can be generated with {@code writeCheck}.
-     *
+     * Cashes a CloudCoin check and saves the CloudCoin stack. A check can be generated with {@link #writeCheck}.
      * <p>
-     * To deposit the check, call {@code sendStackToCloudBank()} after receiving the check.
+     * <br>
+     * This method returns a {@link CompletableFuture} object that can be used to track server progress or chain
+     * methods together.
+     * <br>
+     * <h3>Usage</h3>
+     * <p>
+     * To deposit the check, call {@link #sendStackToCloudBank} after receiving the check.
+     * <p>
+     * <br>
+     * <code>cloudBankUtils.cashCheck(checkId).thenRun() -> {</code>
+     * <br>
+     * <code>cloudBankUtils.sendStackToCloudBank()</code>
+     * <br>
+     * <code>}</code>
      *
-     * @param checkId The ID of the check
-     * @return CompletableFuture
+     * @param checkId the ID of the check
+     * @returns {@link CompletableFuture}
      */
     public CompletableFuture<Object> cashCheck(String checkId) {
         CompletableFuture<Object> clientCall = client.preparePost(
@@ -630,6 +837,10 @@ public class CloudBankUtils implements ICloudBankUtils {
         return clientCall;
     }
 
+
+    /**
+     * AsyncThreadStopper is used to prevent chained server calls from running if a server call is not successful.
+     */
     private class AsyncThreadStopper {
         public volatile boolean stopThread;
     }
@@ -637,22 +848,47 @@ public class CloudBankUtils implements ICloudBankUtils {
 
     // Getters and Setters
 
+    /**
+     * Returns the number of CloudCoin one notes in the bank account.
+     *
+     * @returns int
+     */
     public int getOnesInBank() {
         return onesInBank;
     }
 
+    /**
+     * Returns the number of CloudCoin five notes in the bank account.
+     *
+     * @returns int
+     */
     public int getFivesInBank() {
         return fivesInBank;
     }
 
+    /**
+     * Returns the number of CloudCoin twenty-five notes in the bank account.
+     *
+     * @returns int
+     */
     public int getTwentyFivesInBank() {
         return twentyFivesInBank;
     }
 
+    /**
+     * Returns the number of CloudCoin one-hundred notes in the bank account.
+     *
+     * @returns int
+     */
     public int getHundredsInBank() {
         return hundredsInBank;
     }
 
+    /**
+     * Returns the number of CloudCoin two-hundred-and-fifty notes in the bank account.
+     *
+     * @returns int
+     */
     public int getTwoHundredFiftiesInBank() {
         return twohundredfiftiesInBank;
     }

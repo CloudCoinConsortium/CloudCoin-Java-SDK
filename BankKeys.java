@@ -8,7 +8,7 @@ package CloudCoinJavaSDK;
  */
 
 /**
- * {@code BankKeys} holds sensitive encryption keys of the current user.
+ * {@code BankKeys} holds sensitive encryption keys of the current account.
  *
  * <h3>Usage</h3>
  * <p>
